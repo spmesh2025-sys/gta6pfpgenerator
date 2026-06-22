@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>GTAVI PFP Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.2/dist/transformers.min.js" id="tfjs-cdn"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -88,8 +89,8 @@ header{text-align:center;margin-bottom:4px}
   width:42px;height:42px;border-radius:50%;
   background:rgba(255,255,255,.05);border:1px solid var(--glass-b-strong);
   display:flex;align-items:center;justify-content:center;
-  margin:0 auto 10px;color:var(--ink-1);font-size:22px;font-weight:300;
-  transition:background .15s,border-color .15s,transform .15s,color .15s;line-height:1;
+  margin:0 auto 10px;color:var(--ink-1);
+  transition:background .15s,border-color .15s,transform .15s,color .15s;
 }
 .upload-zone:hover .plus-icon{background:rgba(255,46,132,.12);border-color:rgba(255,46,132,.4);color:var(--accent);transform:scale(1.06)}
 .upload-zone p{font-size:13px;color:var(--ink-1);line-height:1.55}
@@ -125,6 +126,7 @@ input[type=range]::-moz-range-thumb{
   flex:1;padding:11px 14px;border-radius:11px;border:none;
   font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
   cursor:pointer;transition:transform .12s,filter .12s,opacity .12s,background .12s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
 }
 .btn:active{transform:scale(.97)}
 .btn-primary{
@@ -142,7 +144,7 @@ input[type=range]::-moz-range-thumb{
   color:var(--ink-1);
   font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
   cursor:pointer;transition:background .14s,color .14s,border-color .14s;
-  display:flex;align-items:center;justify-content:center;gap:6px;
+  display:flex;align-items:center;justify-content:center;gap:7px;
 }
 .btn-centre:hover{background:rgba(255,255,255,.09);color:var(--ink-0);border-color:rgba(255,46,132,.3)}
 .btn-centre:disabled{opacity:.28;cursor:not-allowed}
@@ -184,7 +186,7 @@ input[type=range]::-moz-range-thumb{
   color:var(--ink-1);
   font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
   cursor:pointer;transition:background .14s,color .14s,border-color .14s;
-  display:flex;align-items:center;justify-content:center;gap:6px;
+  display:flex;align-items:center;justify-content:center;gap:7px;
 }
 .btn-erase:hover{background:rgba(255,255,255,.09);color:var(--ink-0)}
 .btn-erase.erasing{background:rgba(255,46,132,.14);border-color:rgba(255,46,132,.5);color:#fff}
@@ -219,31 +221,7 @@ input[type=range]::-moz-range-thumb{
 #toast.show{transform:translateX(-50%) translateY(0)}
 
 /* ── More backgrounds footer ── */
-.more-bg-section{
-  width:100%;max-width:880px;margin-top:22px;
-  background:rgba(18,18,22,.55);border:1px solid var(--glass-b);
-  border-radius:18px;padding:18px 24px;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
-}
-.more-bg-left{display:flex;align-items:center;gap:12px}
-.bg-slots{display:flex;gap:8px}
-.bg-slot{
-  width:40px;height:40px;border-radius:10px;
-  border:1px solid var(--glass-b-strong);
-  background:rgba(255,255,255,.02);
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;color:var(--ink-3);
-}
-.more-bg-text{display:flex;flex-direction:column;gap:2px}
-.more-bg-title{font-size:13px;font-weight:700;color:var(--ink-0)}
-.more-bg-sub{font-size:11px;color:var(--ink-2)}
-.coming-badge{
-  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--accent);background:rgba(255,46,132,.10);
-  border:1px solid rgba(255,46,132,.25);
-  padding:5px 11px;border-radius:20px;white-space:nowrap;
-}
-@media(max-width:500px){.more-bg-section{justify-content:center;text-align:center}.more-bg-left{flex-direction:column}}
+
 
 /* ── Hamburger menu ── */
 .hamburger-btn{
@@ -335,6 +313,46 @@ input[type=range]::-moz-range-thumb{
 .bg-upload-swatch .plus-mini{font-size:18px;font-weight:300;line-height:1}
 .bg-upload-swatch input{position:absolute;inset:0;opacity:0;cursor:pointer}
 
+
+/* AI BG removal spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+#ai-rmbg-spinner{animation:spin .8s linear infinite}
+
+/* ── Tips strip (under preview) ── */
+.tips-strip{
+  display:flex;flex-direction:column;gap:6px;margin-top:8px;
+}
+.tip-chip{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 11px;border-radius:10px;
+  border:1px solid var(--glass-b);
+  background:rgba(255,255,255,.03);
+  font-size:11px;color:var(--ink-1);line-height:1.45;
+}
+.tip-chip span{font-size:16px;flex-shrink:0}
+.tip-chip strong{color:var(--ink-0);font-size:11.5px}
+.tip-violet{border-color:rgba(124,58,237,.28);background:rgba(124,58,237,.07)}
+.tip-pink{border-color:rgba(255,46,132,.22);background:rgba(255,46,132,.05)}
+.tip-default{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
+
+.guide-open-btn{
+  width:100%;margin-top:8px;padding:9px;
+  border-radius:10px;border:1px solid var(--glass-b-strong);
+  background:rgba(255,255,255,.04);
+  color:var(--ink-1);font-family:'Inter',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;
+  transition:background .14s,color .14s,border-color .14s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.guide-open-btn:hover{background:rgba(255,255,255,.10);color:var(--ink-0);border-color:rgba(255,46,132,.3)}
+
+/* ── Notice line ── */
+.more-bg-notice{
+  width:100%;max-width:880px;
+  text-align:center;margin-top:14px;
+  font-size:11px;color:var(--ink-3);
+  letter-spacing:.02em;
+}
 </style>
 </head>
 <body>
@@ -347,21 +365,29 @@ input[type=range]::-moz-range-thumb{
 <aside class="menu-panel" id="menu-panel">
   <div class="menu-header">
     <h2>About this tool</h2>
-    <button class="menu-close" id="menu-close">✕</button>
+    <button class="menu-close" id="menu-close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
   <div class="menu-body">
     <p>GTAVI PFP Generator is a free, fan-made browser tool that lets you drop your logo onto Vice City-inspired backgrounds and export a polished profile picture in seconds.</p>
+    <p style="font-size:12px;color:var(--ink-2);background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:9px;padding:9px 12px;margin-top:-4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> <strong style="color:rgba(52,211,153,.9)">100% private</strong> — everything runs locally in your browser. Nothing is uploaded anywhere.</p>
+
     <div>
-      <h3>Features</h3>
-      <ul class="menu-feature-list">
-        <li>Choose from multiple GTAVI-themed backgrounds, or upload your own</li>
-        <li>Drag, drop, resize (up to 200%), and reposition your logo</li>
-        <li>Erase parts of your logo with a soft brush — full undo/redo</li>
-        <li>Flood-fill background removal for solid-colour logo backgrounds</li>
-        <li>Export at full 1080×1080 resolution as PNG or JPEG</li>
-        <li>Everything runs locally in your browser — nothing is uploaded anywhere</li>
-      </ul>
+      <h3>Quick Workflow</h3>
+      <ol style="margin-top:6px;padding-left:16px;display:flex;flex-direction:column;gap:7px">
+        <li style="font-size:12px;color:var(--ink-1);line-height:1.5"><strong style="color:var(--ink-0)">Pick a background</strong> from the grid or upload your own.</li>
+        <li style="font-size:12px;color:var(--ink-1);line-height:1.5"><strong style="color:var(--ink-0)">Upload your subject/logo</strong> — PNG ideal, photos work too.</li>
+        <li style="font-size:12px;color:var(--ink-1);line-height:1.5"><strong style="color:var(--ink-0)">Remove background</strong> — Solid for flat-colour logos; AI for photos &amp; complex images.</li>
+        <li style="font-size:12px;color:var(--ink-1);line-height:1.5"><strong style="color:var(--ink-0)">Resize &amp; position</strong> with sliders. Hit ⊕ Centre to snap to middle.</li>
+        <li style="font-size:12px;color:var(--ink-1);line-height:1.5"><strong style="color:var(--ink-0)">Erase</strong> any leftover bits using the Eraser tool. Ctrl+Z to undo.</li>
+        <li style="font-size:12px;color:var(--ink-1);line-height:1.5"><strong style="color:var(--ink-0)">Export</strong> as PNG or JPEG at full 1080×1080 px.</li>
+      </ol>
     </div>
+
+    <div>
+      <h3>Pro Tip</h3>
+      <p style="margin-top:4px;font-size:12px;color:var(--ink-1);line-height:1.6">After AI removal, use the Eraser at a small brush size to clean up any halo or fringe around edges for a sharp result.</p>
+    </div>
+
     <div>
       <h3>Built by</h3>
       <p style="margin-top:2px">Developed by <strong style="color:var(--ink-0)">HeisenTM</strong>.</p>
@@ -392,12 +418,12 @@ input[type=range]::-moz-range-thumb{
 
     <!-- Upload -->
     <div>
-      <p class="lbl">1 — Upload Your Logo</p>
+      <p class="lbl">1 — Upload Your Subject / Logo</p>
       <div class="upload-zone" id="uz">
         <input type="file" id="fi" accept="image/*"/>
-        <div class="plus-icon" id="plus">+</div>
-        <p id="upload-txt"><strong>Click or drag</strong> your logo here<br>
-        <small style="color:rgba(255,255,255,.35)">PNG recommended · Non-PNG auto-converts (beta)</small></p>
+        <div class="plus-icon" id="plus"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+        <p id="upload-txt"><strong>Click or drag</strong> your subject or logo<br>
+        <small style="color:rgba(255,255,255,.35)">PNG recommended · photos, logos, subjects all work</small></p>
       </div>
     </div>
 
@@ -414,19 +440,27 @@ input[type=range]::-moz-range-thumb{
           <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:1px">Flood fill · best for solid/simple backgrounds</div>
         </div>
       </label>
-      <a href="https://www.remove.bg" target="_blank" rel="noopener" style="
-        display:flex;align-items:center;gap:8px;margin-top:8px;
-        padding:9px 12px;border-radius:9px;
-        background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.18);
-        text-decoration:none;transition:background .15s;
-      " onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">
-        <span style="font-size:18px">🤖</span>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#fff">Need AI background removal?</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.4)">Use remove.bg for complex subjects → re-upload here</div>
+      <button id="ai-rmbg-btn" disabled style="
+        width:100%;display:flex;align-items:center;gap:10px;margin-top:8px;
+        padding:10px 12px;border-radius:9px;border:none;cursor:pointer;
+        background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.35);
+        color:#fff;font-family:'Inter',sans-serif;text-align:left;
+        transition:background .15s;
+      " onmouseover="if(!this.disabled)this.style.background='rgba(124,58,237,.25)'"
+         onmouseout="this.style.background='rgba(124,58,237,.15)'">
+        <span id="ai-rmbg-icon" style="flex-shrink:0;display:flex;align-items:center;color:#fff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L13.5 8.5H19L14.5 11.5L16 17L12 14L8 17L9.5 11.5L5 8.5H10.5L12 3Z"/></svg></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-weight:700;color:#fff">AI Background Removal</div>
+          <div id="ai-rmbg-status" style="font-size:10px;color:rgba(255,255,255,.45);margin-top:1px">Upload a logo first to enable</div>
         </div>
-        <span style="margin-left:auto;font-size:10px;color:var(--accent);font-weight:700">↗ Open</span>
-      </a>
+        <div id="ai-rmbg-spinner" style="display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;flex-shrink:0"></div>
+      </button>
+      <div id="ai-rmbg-progress" style="display:none;margin-top:6px">
+        <div style="height:3px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden">
+          <div id="ai-rmbg-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#ff2e84);transition:width .3s;border-radius:2px"></div>
+        </div>
+        <div id="ai-rmbg-label" style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px;text-align:center">Loading AI model…</div>
+      </div>
     </div>
 
     <div class="divider"></div>
@@ -441,7 +475,7 @@ input[type=range]::-moz-range-thumb{
         <div class="sr"><label>Opacity <span id="ov">100%</span></label><input type="range" id="os" min="5" max="100" value="100"/></div>
       </div>
       <br/>
-      <button class="btn-centre" id="cb" disabled>⊕ &nbsp;Centre Logo</button>
+      <button class="btn-centre" id="cb" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> Centre Logo</button>
     </div>
 
     <div class="divider"></div>
@@ -449,14 +483,14 @@ input[type=range]::-moz-range-thumb{
     <!-- Eraser -->
     <div>
       <p class="lbl">3 — Erase / Touch Up</p>
-      <button class="btn-erase" id="erase-btn" disabled>✏️ &nbsp;Enable Eraser</button>
+      <button class="btn-erase" id="erase-btn" disabled style="gap:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l11-11 6 6-3.5 3.5"/><path d="M6.5 17.5l4-4"/></svg> Enable Eraser</button>
       <div class="eraser-bar" id="eraser-bar" style="margin-top:8px">
         <div class="eraser-top">
-          <span class="eraser-label">🖌️ Brush Size</span>
+          <span class="eraser-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="18" r="2" fill="currentColor" stroke="none"/></svg> Brush Size</span>
           <div class="eraser-actions">
-            <button class="ico-btn" id="undo-btn" title="Undo" disabled>↩</button>
-            <button class="ico-btn" id="redo-btn" title="Redo" disabled>↪</button>
-            <button class="ico-btn" id="clear-erase-btn" title="Clear all erases" style="font-size:11px">✕</button>
+            <button class="ico-btn" id="undo-btn" title="Undo" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+            <button class="ico-btn" id="redo-btn" title="Redo" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></svg></button>
+            <button class="ico-btn" id="clear-erase-btn" title="Clear all erases"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
           </div>
         </div>
         <div class="eraser-size-row">
@@ -477,8 +511,8 @@ input[type=range]::-moz-range-thumb{
         <button class="fp" data-fmt="jpeg">JPEG</button>
       </div>
       <div class="btn-row">
-        <button class="btn btn-ghost" id="rb">Reset</button>
-        <button class="btn btn-primary" id="eb" disabled>⬇ Download PFP</button>
+        <button class="btn btn-ghost" id="rb" style="display:flex;align-items:center;justify-content:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Reset</button>
+        <button class="btn btn-primary" id="eb" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download PFP</button>
       </div>
     </div>
 
@@ -492,23 +526,27 @@ input[type=range]::-moz-range-thumb{
       <canvas id="erase-overlay" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;border-radius:14px"></canvas>
     </div>
     <p class="preview-hint">Exports at 1080 × 1080 px</p>
+
+    <!-- Quick tips strip -->
+    <div class="tips-strip">
+      <div class="tip-chip tip-violet">
+        <span style="display:flex;color:#fff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L13.5 8.5H19L14.5 11.5L16 17L12 14L8 17L9.5 11.5L5 8.5H10.5L12 3Z"/></svg></span>
+        <div><strong>AI Removal</strong><br>Photos &amp; complex subjects</div>
+      </div>
+      <div class="tip-chip tip-pink">
+        <span style="display:flex;color:#fff"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="17.5" cy="10.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="8.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="6.5" cy="12.5" r="1.5" fill="currentColor" stroke="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.1 0 2-.9 2-2v-.5c0-.55-.2-1.05-.51-1.4a.99.99 0 0 1 .75-1.6H16c3.31 0 6-2.69 6-6 0-4.96-4.48-9-10-9z"/></svg></span>
+        <div><strong>Solid Removal</strong><br>Flat-colour logo backgrounds</div>
+      </div>
+      <div class="tip-chip tip-default">
+        <span style="display:flex;color:#fff"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l11-11 6 6-3.5 3.5"/><path d="M6.5 17.5l4-4"/></svg></span>
+        <div><strong>Eraser</strong><br>Clean up edges after removal</div>
+      </div>
+    </div>
+    <button class="guide-open-btn" id="guide-open-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Full guide &amp; workflow</button>
   </div>
 
-<!-- More backgrounds coming soon -->
-<div class="more-bg-section">
-  <div class="more-bg-left">
-    <div class="bg-slots">
-      <div class="bg-slot">＋</div>
-      <div class="bg-slot">＋</div>
-      <div class="bg-slot">＋</div>
-    </div>
-    <div class="more-bg-text">
-      <span class="more-bg-title">More Backgrounds</span>
-      <span class="more-bg-sub">New GTAVI themed backgrounds dropping soon</span>
-    </div>
-  </div>
-  <span class="coming-badge">Coming Soon</span>
-</div>
+<!-- More backgrounds notice -->
+<p class="more-bg-notice">Notice: new backgrounds coming soon</p>
 
 </div>
 
@@ -824,7 +862,7 @@ document.getElementById('erase-btn').addEventListener('click', () => {
   eraserActive = !eraserActive;
   const btn = document.getElementById('erase-btn');
   const bar = document.getElementById('eraser-bar');
-  btn.textContent = eraserActive ? '✏️  Eraser ON — Click to Disable' : '✏️  Enable Eraser';
+  btn.innerHTML = eraserActive ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l11-11 6 6-3.5 3.5"/><path d="M6.5 17.5l4-4"/></svg> Eraser ON — Click to Disable` : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l11-11 6 6-3.5 3.5"/><path d="M6.5 17.5l4-4"/></svg> Enable Eraser`;
   btn.classList.toggle('erasing', eraserActive);
   bar.classList.toggle('active', eraserActive);
   eo.style.opacity = eraserActive ? '1' : '0';
@@ -903,6 +941,7 @@ function load(file){
     document.getElementById('eb').disabled=false;
     document.getElementById('cb').disabled=false;
     document.getElementById('erase-btn').disabled=false;
+    enableAiBtn();
     document.getElementById('upload-txt').innerHTML=`<strong style="color:#4dda90">✓ ${file.name}</strong>`;
     document.getElementById('plus').textContent='✓';
     uz.classList.add('loaded');
@@ -1048,11 +1087,14 @@ document.getElementById('rb').addEventListener('click',()=>{
   lctx.clearRect(0,0,W,H);
   mctx.clearRect(0,0,W,H);
   eraserActive=false;
-  document.getElementById('erase-btn').textContent='✏️  Enable Eraser';
+  document.getElementById('erase-btn').innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l11-11 6 6-3.5 3.5"/><path d="M6.5 17.5l4-4"/></svg> Enable Eraser`;
   document.getElementById('erase-btn').classList.remove('erasing');
   document.getElementById('eraser-bar').classList.remove('active');
   document.getElementById('erase-btn').disabled=true;
   eo.style.opacity='0';
+  aiBtn.disabled=true;
+  aiIcon.innerHTML=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L13.5 8.5H19L14.5 11.5L16 17L12 14L8 17L9.5 11.5L5 8.5H10.5L12 3Z"/></svg>`;
+  aiStatus.textContent='Upload a logo first to enable';
   canvas.classList.remove('erasing');
   updateUndoRedo();
   bgrWrap.style.display='none';
@@ -1079,6 +1121,197 @@ function toast(m){
   t.textContent=m;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
 }
+
+
+// ══════════════════════════════════════════════════════
+// AI Background Removal — Transformers.js + RMBG-1.4
+// Runs in an inline Web Worker so UI never freezes.
+// ══════════════════════════════════════════════════════
+
+const AI_WORKER_SRC = `
+import { env, AutoModel, AutoProcessor, RawImage } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.2/dist/transformers.min.js';
+
+env.allowLocalModels = false;
+
+let model = null;
+let processor = null;
+const MODEL_ID = 'briaai/RMBG-1.4';
+
+async function loadModel(onProgress) {
+  if (model && processor) return;
+  onProgress('Downloading AI model (first time only)…', 5);
+  model = await AutoModel.from_pretrained(MODEL_ID, {
+    config: { model_type: 'custom' },
+    progress_callback: (p) => {
+      if (p.status === 'progress' && p.total) {
+        const pct = Math.round((p.loaded / p.total) * 70);
+        onProgress('Downloading AI model… ' + pct + '%', 5 + pct);
+      }
+    }
+  });
+  onProgress('Loading processor…', 78);
+  processor = await AutoProcessor.from_pretrained(MODEL_ID, {
+    config: {
+      do_normalize: true, do_pad: false, do_rescale: true, do_resize: true,
+      image_mean: [0.5, 0.5, 0.5], image_std: [1, 1, 1],
+      feature_extractor_type: 'ImageFeatureExtractor',
+      resample: 2, rescale_factor: 0.00392156862745098,
+      size: { width: 1024, height: 1024 }
+    }
+  });
+  onProgress('Model ready!', 100);
+}
+
+self.onmessage = async (e) => {
+  const { dataUrl } = e.data;
+  const onProgress = (msg, pct) => self.postMessage({ type: 'progress', msg, pct });
+  try {
+    await loadModel(onProgress);
+    onProgress('Analysing image…', 82);
+    const img = await RawImage.fromURL(dataUrl);
+    onProgress('Running segmentation…', 88);
+    const inputs = await processor(img);
+    const { output } = await model({ input: inputs.pixel_values });
+    onProgress('Applying mask…', 95);
+    const maskData = await RawImage.fromTensor(output[0].mul(255).to('uint8')).resize(img.width, img.height);
+    // Build RGBA output
+    const canvas = new OffscreenCanvas(img.width, img.height);
+    const ctx2 = canvas.getContext('2d');
+    const imgData = new ImageData(
+      new Uint8ClampedArray(img.width * img.height * 4),
+      img.width, img.height
+    );
+    for (let i = 0; i < img.width * img.height; i++) {
+      imgData.data[i*4]   = img.data[i*3];
+      imgData.data[i*4+1] = img.data[i*3+1];
+      imgData.data[i*4+2] = img.data[i*3+2];
+      imgData.data[i*4+3] = maskData.data[i];
+    }
+    ctx2.putImageData(imgData, 0, 0);
+    const blob = await canvas.convertToBlob({ type: 'image/png' });
+    // Transfer blob back as object URL — works in all modern workers
+    const arrBuf = await blob.arrayBuffer();
+    self.postMessage({ type: 'done', buffer: arrBuf, mimeType: 'image/png' }, [arrBuf]);
+  } catch(err) {
+    self.postMessage({ type: 'error', msg: err.message || String(err) });
+  }
+};
+`;
+
+// Create inline worker as ES module via blob
+let aiWorker = null;
+let aiWorkerReady = false;
+let aiModelCached = false;
+
+function getAiWorker() {
+  if (aiWorker) return aiWorker;
+  const blob = new Blob([AI_WORKER_SRC], { type: 'application/javascript' });
+  const workerUrl = URL.createObjectURL(blob);
+  aiWorker = new Worker(workerUrl, { type: 'module' });
+  return aiWorker;
+}
+
+// UI refs
+const aiBtn    = document.getElementById('ai-rmbg-btn');
+const aiIcon   = document.getElementById('ai-rmbg-icon');
+const aiStatus = document.getElementById('ai-rmbg-status');
+const aiBar    = document.getElementById('ai-rmbg-bar');
+const aiLabel  = document.getElementById('ai-rmbg-label');
+const aiProg   = document.getElementById('ai-rmbg-progress');
+const aiSpinner= document.getElementById('ai-rmbg-spinner');
+
+function setAiBtnState(state) {
+  // states: 'idle' | 'loading' | 'done' | 'error'
+  if (state === 'idle') {
+    aiBtn.disabled = false;
+    aiIcon.innerHTML = aiModelCached ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>` : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L13.5 8.5H19L14.5 11.5L16 17L12 14L8 17L9.5 11.5L5 8.5H10.5L12 3Z"/></svg>`;
+    aiStatus.textContent = aiModelCached ? 'AI ready — click to remove background' : 'Click to remove background with AI';
+    aiProg.style.display = 'none';
+    aiSpinner.style.display = 'none';
+    aiBtn.style.opacity = '1';
+  } else if (state === 'loading') {
+    aiBtn.disabled = true;
+    aiSpinner.style.display = 'block';
+    aiProg.style.display = 'block';
+    aiBtn.style.opacity = '1';
+  } else if (state === 'done') {
+    aiModelCached = true;
+    aiBtn.disabled = false;
+    aiIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+    aiStatus.textContent = 'Done! Click to re-run';
+    aiProg.style.display = 'none';
+    aiSpinner.style.display = 'none';
+  } else if (state === 'error') {
+    aiBtn.disabled = false;
+    aiIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+    aiStatus.textContent = 'Error — click to retry';
+    aiProg.style.display = 'none';
+    aiSpinner.style.display = 'none';
+  }
+}
+
+function enableAiBtn() {
+  if (rawLogoImg) {
+    aiBtn.disabled = false;
+    aiStatus.textContent = aiModelCached ? 'AI ready — click to remove background' : 'Click to remove background with AI';
+  }
+}
+
+aiBtn.addEventListener('click', () => {
+  if (!rawLogoImg) return;
+  setAiBtnState('loading');
+  aiLabel.textContent = 'Starting AI engine…';
+  aiBar.style.width = '2%';
+
+  // Convert rawLogoImg to data URL for the worker
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width  = rawLogoImg.naturalWidth;
+  tmpCanvas.height = rawLogoImg.naturalHeight;
+  tmpCanvas.getContext('2d').drawImage(rawLogoImg, 0, 0);
+  const dataUrl = tmpCanvas.toDataURL('image/png');
+
+  const worker = getAiWorker();
+
+  worker.onmessage = (e) => {
+    const { type, msg, pct, resultDataUrl } = e.data;
+    if (type === 'progress') {
+      aiLabel.textContent = msg;
+      aiBar.style.width = pct + '%';
+    } else if (type === 'done') {
+      const blob2 = new Blob([e.data.buffer], { type: e.data.mimeType });
+      const blobUrl = URL.createObjectURL(blob2);
+      const outImg = new Image();
+      outImg.onload = () => {
+        rawLogoImg = outImg;
+        logoImg = outImg;
+        strokes = []; liveStroke = null; undoStack = []; redoStack = [];
+        lctx.clearRect(0, 0, W, H); mctx.clearRect(0, 0, W, H);
+        updateUndoRedo();
+        draw();
+        setAiBtnState('done');
+        toast('AI background removed ✓');
+        URL.revokeObjectURL(blobUrl);
+      };
+      outImg.src = blobUrl;
+    } else if (type === 'error') {
+      console.error('AI worker error:', msg);
+      setAiBtnState('error');
+      toast('AI error: ' + (msg || 'unknown'));
+    }
+  };
+
+  worker.onerror = (err) => {
+    console.error('Worker error:', err);
+    setAiBtnState('error');
+    toast('AI worker failed — try again');
+  };
+
+  worker.postMessage({ dataUrl });
+});
+
+
+// ── Guide button → opens hamburger menu ──
+document.getElementById('guide-open-btn').addEventListener('click', openMenu);
 
 // ── Hamburger menu ──
 const hamburgerBtn = document.getElementById('hamburger-btn');
